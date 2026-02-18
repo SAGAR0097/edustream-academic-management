@@ -1,0 +1,5 @@
+{
+  "name": "EduStream Management Portal",
+  "description": "A comprehensive academic management system for tracking students, teachers, courses, and activity with integrated AI for course description generation.",
+  "requestFramePermissions": []
+}
