@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Icons } from './constants';
 import Dashboard from './components/Dashboard';
@@ -8,13 +8,14 @@ import Teachers from './components/Teachers';
 import Courses from './components/Courses';
 import { useDatabase } from './hooks/useDatabase';
 
-const Sidebar = ({ isDemo }: { isDemo: boolean }) => {
+const Sidebar = ({ isDemo, isOpen, onClose }: { isDemo: boolean; isOpen: boolean; onClose: () => void }) => {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
 
   const NavItem = ({ to, icon: Icon, label }: { to: string; icon: any; label: string }) => (
     <Link
       to={to}
+      onClick={onClose}
       className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${
         isActive(to)
           ? 'bg-blue-600 text-white shadow-md'
@@ -27,27 +28,40 @@ const Sidebar = ({ isDemo }: { isDemo: boolean }) => {
   );
 
   return (
-    <div className="w-64 h-screen bg-white border-r border-gray-200 flex flex-col fixed left-0 top-0">
-      <div className="p-6 flex items-center gap-3">
-        <Icons.Logo />
-        <span className="text-xl font-bold text-gray-800">EduStream</span>
-      </div>
-
-      <nav className="flex-1 px-4 py-4 space-y-6">
-        <div>
-          <NavItem to="/" icon={Icons.Dashboard} label="Dashboard" />
-        </div>
-
-        <div>
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 mb-3">Management</h3>
-          <div className="space-y-1">
-            <NavItem to="/students" icon={Icons.Students} label="Students" />
-            <NavItem to="/teachers" icon={Icons.Teachers} label="Teachers" />
-            <NavItem to="/courses" icon={Icons.Courses} label="Courses" />
+    <>
+      {/* Mobile Overlay */}
+      <div 
+        className={`fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        onClick={onClose}
+      />
+      
+      <div className={`w-64 h-screen bg-white border-r border-gray-200 flex flex-col fixed left-0 top-0 z-50 transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="p-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Icons.Logo />
+            <span className="text-xl font-bold text-gray-800">EduStream</span>
           </div>
+          <button onClick={onClose} className="lg:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
         </div>
-      </nav>
-    </div>
+
+        <nav className="flex-1 px-4 py-4 space-y-6">
+          <div>
+            <NavItem to="/" icon={Icons.Dashboard} label="Dashboard" />
+          </div>
+
+          <div>
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 mb-3">Management</h3>
+            <div className="space-y-1">
+              <NavItem to="/students" icon={Icons.Students} label="Students" />
+              <NavItem to="/teachers" icon={Icons.Teachers} label="Teachers" />
+              <NavItem to="/courses" icon={Icons.Courses} label="Courses" />
+            </div>
+          </div>
+        </nav>
+      </div>
+    </>
   );
 };
 
@@ -115,6 +129,7 @@ const ErrorScreen = ({ onRetry, onDemo, errorMsg }: { onRetry: () => void; onDem
 };
 
 const App: React.FC = () => {
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
   const { 
     db, loading, error, retry, enterDemoMode, isDemoMode,
     addStudent, updateStudent, deleteStudent,
@@ -140,24 +155,41 @@ const App: React.FC = () => {
   return (
     <HashRouter>
       <div className="flex min-h-screen bg-slate-50">
-        <Sidebar isDemo={isDemoMode} />
-        <main className="flex-1 ml-64 p-8">
-          <Routes>
-            <Route path="/" element={<Dashboard db={db} />} />
-            <Route 
-              path="/students" 
-              element={<Students students={db.students} onAdd={addStudent} onUpdate={updateStudent} onDelete={deleteStudent} />} 
-            />
-            <Route 
-              path="/teachers" 
-              element={<Teachers teachers={db.teachers} onAdd={addTeacher} onUpdate={updateTeacher} onDelete={deleteTeacher} />} 
-            />
-            <Route 
-              path="/courses" 
-              element={<Courses courses={db.courses} teachers={db.teachers} onAdd={addCourse} onUpdate={updateCourse} onDelete={deleteCourse} />} 
-            />
-          </Routes>
-        </main>
+        <Sidebar isDemo={isDemoMode} isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
+        
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Mobile Header */}
+          <header className="lg:hidden bg-white border-b border-gray-200 p-4 flex items-center justify-between sticky top-0 z-30">
+            <div className="flex items-center gap-3">
+              <Icons.Logo />
+              <span className="text-lg font-bold text-gray-800">EduStream</span>
+            </div>
+            <button 
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+          </header>
+
+          <main className="flex-1 lg:ml-64 p-4 md:p-8">
+            <Routes>
+              <Route path="/" element={<Dashboard db={db} />} />
+              <Route 
+                path="/students" 
+                element={<Students students={db.students} onAdd={addStudent} onUpdate={updateStudent} onDelete={deleteStudent} />} 
+              />
+              <Route 
+                path="/teachers" 
+                element={<Teachers teachers={db.teachers} onAdd={addTeacher} onUpdate={updateTeacher} onDelete={deleteTeacher} />} 
+              />
+              <Route 
+                path="/courses" 
+                element={<Courses courses={db.courses} teachers={db.teachers} onAdd={addCourse} onUpdate={updateCourse} onDelete={deleteCourse} />} 
+              />
+            </Routes>
+          </main>
+        </div>
       </div>
     </HashRouter>
   );
