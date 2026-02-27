@@ -80,8 +80,9 @@ const Students: React.FC<StudentsProps> = ({ students, onAdd, onUpdate, onDelete
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-gray-50 border-b border-gray-100">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[600px]">
+            <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
               <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Name</th>
               <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Email</th>
@@ -126,6 +127,7 @@ const Students: React.FC<StudentsProps> = ({ students, onAdd, onUpdate, onDelete
           </tbody>
         </table>
       </div>
+    </div>
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
